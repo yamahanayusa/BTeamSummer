@@ -9,11 +9,12 @@ public class EnemyAI : MonoBehaviour
     public enum EnemyState { Wander, Alert, Chase }
 
     [Header("現在の状態（デバッグ用）")]
-    // インスペクター上で、今敵が何の状態なのかをリアルタイムで見るための変数
-    public EnemyState currentState = EnemyState.Wander;
+    public EnemyState currentState = EnemyState.Wander; // 今敵が何の状態なのかをリアルタイムで見るための変数
 
     [Header("プレイヤーの設定")]
     public Transform playerTarget; // 追いかけるプレイヤーのTransform
+
+    private EnemyUI enemyUI;
 
     [Header("徘徊の設定 (Wander)")]
     public float wanderRadius = 10.0f;　// 目的地を探す範囲
@@ -32,12 +33,15 @@ public class EnemyAI : MonoBehaviour
     private NavMeshAgent agent; // 敵の移動をコントロールするコンポーネントを入れる変数
     private Animator anim; // アニメーションを切り替えるコンポーネントを入れる変数
     private float wanderTimer; // 目的地に着いたあと、待ち時間を数えるためのタイマー
-    private float alertTimer;
+    private float alertTimer; // 敵の視界に入ってから、見つかるまでの猶予時間をカウントする
+    private float stuckTimer; // 詰まり防止用のタイマー
+    private Vector3 lastPosition; // 最後にいた場所
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         anim = GetComponent<Animator>();
+        enemyUI = GetComponent<EnemyUI>();
 
         // ゲーム開始直後、敵が棒立ちにならないように最初のランダムな目的地を決める
         SetRandomDestination();
@@ -45,13 +49,6 @@ public class EnemyAI : MonoBehaviour
 
     void Update()
     {
-        // アニメーターがちゃんと存在しているか確認
-        if (anim != null)
-        {
-            // 現在の敵の「実際の移動速度（秒速）」を測って、Animatorの"Speed"に送る
-            anim.SetFloat("Speed", agent.velocity.magnitude);
-        }
-
         // 自身とプレイヤーとの間の移動速度を伝える処理
         float distanceToPlayer = Vector3.Distance(transform.position, playerTarget.position);
 
@@ -70,19 +67,41 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // --- 徘徊状態のときの具体的な行動 ---
+    // --- 徘徊状態の時の具体的な行動 ---
     void HandleWander(float distanceToPlayer)
     {
         if (IsPlayerInFOV(distanceToPlayer))
         {
             currentState = EnemyState.Alert; // 状態を「警戒」に切り替える
-            alertLimitTime = 0.0f;
+            alertTimer = 0.0f;
+            if (enemyUI != null) enemyUI.ShowAlertMark();
             agent.ResetPath(); // 今目指していた目的地を消去して、その場でピタッと足を止める
             return;
         }
 
-        // --- 通常の徘徊移動の処理 ---
+        /// 通常の徘徊移動の処理 ///
         agent.speed = wanderSpeed;
+
+        // 詰まり防止チェック
+        // 敵の移動速度がほぼゼロ
+        if(agent.velocity.magnitude < 0.1f)
+        {
+            stuckTimer += Time.deltaTime;
+
+            // 3秒間その場にいたら
+            if (stuckTimer >= 3.0f)
+            {
+                SetRandomDestination(); // 新しい目的地に行く
+                stuckTimer = 0.0f;
+                wanderTimer = 0.0f;
+                return;
+            }
+        }
+        else
+        {
+            stuckTimer = 0.0f; //動いているときはタイマーをゼロにする
+        }
+
         // 敵が目的地に無事に到着したかを3つの条件でチェック
         // !agent.pathPending : ルートを計算中ではない
         // agent.hasPath : ちゃんと目指すルートを持っている
@@ -95,16 +114,13 @@ public class EnemyAI : MonoBehaviour
             // もしタイマーが、設定した待ち時間を超えたら
             if (wanderTimer >= wanderWaitTime)
             {
-                // 次の新しいランダムな目的地を決めて、そこへ向かわせる
-                SetRandomDestination();
-
-                // 次回のカウントのためにタイマーをゼロにリセットする
-                wanderTimer = 0;
+                SetRandomDestination(); // 新しい目的地に行く
+                wanderTimer = 0.0f;// タイマーをリセットする
             }
         }
     }
 
-    // --- 警戒状態のときの具体的な行動 ---
+    // --- 警戒状態の時の具体的な行動 ---
     void HandleAlert(float distanceToPlayer)
     {
         // プレイヤーの方をスムーズにじっと見つめ続ける
@@ -118,6 +134,7 @@ public class EnemyAI : MonoBehaviour
             if (alertTimer >= alertLimitTime)
             {
                 currentState = EnemyState.Chase; // 時間切れで追跡モード
+                if(enemyUI != null)enemyUI.ShowChaseMark();
             }
         }
         else
@@ -128,12 +145,13 @@ public class EnemyAI : MonoBehaviour
             if (alertTimer <= 0)
             {
                 currentState = EnemyState.Wander; // 状態を「徘徊」に戻す
+                if (enemyUI != null) enemyUI.ClearMark();
                 SetRandomDestination(); // またトコトコ歩き回るために、新しい目的地を決める
             }
         }
     }
 
-    // --- 
+    // --- 追跡状態の時の具体的な行動
     void HandleChase(float distanceToPlayer)
     {
         agent.speed = chaseSpeed;
@@ -143,6 +161,7 @@ public class EnemyAI : MonoBehaviour
         if(distanceToPlayer > loseRadius)
         {
             currentState = EnemyState.Wander;
+            if (enemyUI != null) enemyUI.ClearMark();
             SetRandomDestination();
         }
     }
