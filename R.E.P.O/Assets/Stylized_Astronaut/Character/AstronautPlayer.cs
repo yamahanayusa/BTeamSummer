@@ -3,37 +3,52 @@ using System.Collections;
 
 namespace AstronautPlayer
 {
+    public class AstronautPlayer : MonoBehaviour
+    {
+        private Animator anim;
+        private CharacterController controller;
 
-	public class AstronautPlayer : MonoBehaviour {
+        public float speed = 6.0f;
+        private Vector3 moveDirection = Vector3.zero;
+        public float gravity = 20.0f;
 
-		private Animator anim;
-		private CharacterController controller;
+        void Start()
+        {
+            controller = GetComponent<CharacterController>();
+            anim = gameObject.GetComponentInChildren<Animator>();
+        }
 
-		public float speed = 600.0f;
-		public float turnSpeed = 400.0f;
-		private Vector3 moveDirection = Vector3.zero;
-		public float gravity = 20.0f;
+        void Update()
+        {
+            float h = Input.GetAxis("Horizontal");
+            float v = Input.GetAxis("Vertical");
 
-		void Start () {
-			controller = GetComponent <CharacterController>();
-			anim = gameObject.GetComponentInChildren<Animator>();
-		}
+            // WASD移動
+            Vector3 move = transform.forward * v +
+                           transform.right * h;
 
-		void Update (){
-			if (Input.GetKey ("w")) {
-				anim.SetInteger ("AnimationPar", 1);
-			}  else {
-				anim.SetInteger ("AnimationPar", 0);
-			}
+            move.Normalize();
 
-			if(controller.isGrounded){
-				moveDirection = transform.forward * Input.GetAxis("Vertical") * speed;
-			}
+            if (controller.isGrounded)
+            {
+                moveDirection = move * speed;
+            }
 
-			float turn = Input.GetAxis("Horizontal");
-			transform.Rotate(0, turn * turnSpeed * Time.deltaTime, 0);
-			controller.Move(moveDirection * Time.deltaTime);
-			moveDirection.y -= gravity * Time.deltaTime;
-		}
-	}
+            // 重力
+            moveDirection.y -= gravity * Time.deltaTime;
+
+            // 移動
+            controller.Move(moveDirection * Time.deltaTime);
+
+            // アニメーション
+            if (move.magnitude > 0.1f)
+            {
+                anim.SetInteger("AnimationPar", 1);
+            }
+            else
+            {
+                anim.SetInteger("AnimationPar", 0);
+            }
+        }
+    }
 }
