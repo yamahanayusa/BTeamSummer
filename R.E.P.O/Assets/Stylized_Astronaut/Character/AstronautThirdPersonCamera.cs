@@ -27,19 +27,6 @@ namespace AstronautFirstPersonCamera
 
         void Update()
         {
-            if (Time.timeScale == 0.0f)
-            {
-                // マウスカーソルを表示して自由に動かせるようにする
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
-
-                return;
-            }
-
-            // プレイ中はマウスカーソルを隠して固定する
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-
             currentX += Input.GetAxis("Mouse X") * sensitivityX;
             currentY -= Input.GetAxis("Mouse Y") * sensitivityY;
 
