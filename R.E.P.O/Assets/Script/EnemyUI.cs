@@ -14,7 +14,7 @@ public class EnemyUI : MonoBehaviour
         ClearMark();
     }
 
-    // --- 文字を「?」にする命令 ---
+    // --- 文字を「？」にする命令 ---
     public void ShowAlertMark()
     {
         if (markText != null) markText.text = "?";
