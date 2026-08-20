@@ -52,5 +52,7 @@ public class ItemSpawner : MonoBehaviour
 
         //    item.transform.position = pos;
         //}
+
+        Debug.Log(item.name + " Çê∂ê¨ÇµÇ‹ÇµÇΩ");
     }
 }
