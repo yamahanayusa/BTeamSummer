@@ -3994,11 +3994,18 @@ MonoBehaviour:
   - {fileID: 100000, guid: b4fdf158773fff744b16a54d1ac9cd8a, type: 3}
   - {fileID: 100000, guid: 9cd491d0014ca804ca02aac77d81e1c8, type: 3}
   - {fileID: 100000, guid: 7a8d4342bb20e6c4484920469f8148e0, type: 3}
+  - {fileID: 100000, guid: d7ec3986b32d9544ebfdc035c7d5f1ca, type: 3}
   spawnPoints:
   - {fileID: 1505742954}
   - {fileID: 329872991}
   - {fileID: 852710233}
   - {fileID: 1957081493}
+  - {fileID: 397292213}
+  - {fileID: 1808097900}
+  - {fileID: 1007355975}
+  - {fileID: 1911412292}
+  - {fileID: 2130731754}
+  - {fileID: 742352069}
   itemCount: 20
 --- !u!65 &1548289120
 BoxCollider:
