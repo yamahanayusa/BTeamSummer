@@ -11,6 +11,10 @@ public class GameOverMenuManager : MonoBehaviour
 
     private void Start()
     {
+        // マウスカーソルの表示
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+
         // ゲームオーバー画面が開いた時は確実に時間を動かす
         Time.timeScale = 1.0f;
     }
