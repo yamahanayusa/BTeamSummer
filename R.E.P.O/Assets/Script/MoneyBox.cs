@@ -14,6 +14,21 @@ public class MoneyBox : MonoBehaviour
     [Header("ゲームクリア時に遷移するシーン名")]
     public string clearSceneName = "GameClearScene";
 
+    private UIManager uiManager;
+
+    void Start()
+    {
+        // シーン内からUIManagerを見つける
+        uiManager = FindObjectOfType<UIManager>();
+
+        if (uiManager != null)
+        {
+            // ゲーム開始時に目標金額と初期の所持金をUIに反映
+            uiManager.SetTargetMoney(targetMoney);
+            uiManager.UpdateCurrentMoney(currentMoney);
+        }
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         // 入ってきたオブジェクトから ItemValue を取得
@@ -30,6 +45,12 @@ public class MoneyBox : MonoBehaviour
             // ItemValue の valueを加算
             currentMoney += item.value;
             Debug.Log($"箱に納品されました！ +${item.value} (合計: ${currentMoney} / ${targetMoney})");
+
+            // 所持金が増えたのでUIを更新
+            if (uiManager != null)
+            {
+                uiManager.UpdateCurrentMoney(currentMoney);
+            }
 
             // 納品したアイテムを消去
             Destroy(item.gameObject);
