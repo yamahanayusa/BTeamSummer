@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro.EditorUtilities;
 using UnityEngine;
 
 public class PlayerHealth : MonoBehaviour
@@ -12,11 +13,21 @@ public class PlayerHealth : MonoBehaviour
     private bool isInvincible = false;     // 現在無敵状態かどうか
 
     private GameOverManager gameOverManager;
+    private UIManager uiManager;
 
     void Start()
     {
         currentHealth = maxHealth;
         gameOverManager = FindObjectOfType<GameOverManager>();
+
+        // シーンからUIManagerを見つける
+        uiManager = FindObjectOfType<UIManager>();
+
+        // ゲーム開始時のHPをUIに反映
+        if (uiManager != null)
+        {
+            uiManager.UpdateHP(currentHealth);
+        }
     }
 
     // ダメージを受ける処理
@@ -27,6 +38,12 @@ public class PlayerHealth : MonoBehaviour
 
         currentHealth -= damage;
         Debug.Log($"プレイヤーがダメージを受けた！ 残りHP: {currentHealth}");
+
+        // ダメージを受けたらUIを更新
+        if (uiManager != null)
+        {
+            uiManager.UpdateHP(currentHealth);
+        }
 
         if (currentHealth <= 0)
         {

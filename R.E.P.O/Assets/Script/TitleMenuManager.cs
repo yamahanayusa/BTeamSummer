@@ -15,54 +15,16 @@ public class TitleMenuManager : MonoBehaviour
     public static float MasterVolume = 0.7f;
     public static float MouseSensitivity = 2.0f;
 
-    // Sceneを跨いでもマネージャーを１つだけに保つための変数
-    private static TitleMenuManager instance;
-
-    private void Awake()
-    {
-        // シーンが切り替わっても、このシーンを消さずに持っていく
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(gameObject); // マネージャー自身を消さない
-            DontDestroyOnLoad(optionsCanvas); // 設定画面も消さない
-
-            // シーン切り替えイベントの登録
-            SceneManager.sceneLoaded += OnSceneLoaded;
-        }
-        else
-        {
-            // タイトル画面に戻ってきて2個目が生成されたら、古い方を消す
-            Destroy(gameObject);
-            return;
-        }
-    }
-
-    private void OnDestroy()
-    {
-        // オブジェクトが削除されるときはイベントを解除
-        if (instance == this)
-        {
-            SceneManager.sceneLoaded -= OnSceneLoaded;
-        }
-    }
-
-    // --- シーンが読み込まれたときに自動で呼ばれる関数 ---
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        Debug.Log($"シーンが切り替わりました: {scene.name} / 設定画面を閉じます");
-
-        // シーンが切り替わったら、確実に設定画面を非表示にする
-        OnBackButtonClick();
-
-        // 新しいシーンが始まったら時間は確実に動かす
-        Time.timeScale = 1.0f;
-    }
-
     private void Start()
     {
-        // 起動時やシーンの移動時には、設定画面を確実に非表示にする
-        OnBackButtonClick();
+        // 起動時には確実に設定画面を非表示にする
+        if (optionsCanvas != null)
+        {
+            optionsCanvas.SetActive(false);
+        }
+
+        // 時間を確実に動かす
+        Time.timeScale = 1.0f;
 
         // ゲーム起動時に、現在の数値をスライダーの見た目に反映させる
         if (audioSlider != null) audioSlider.value = MasterVolume;
@@ -72,7 +34,6 @@ public class TitleMenuManager : MonoBehaviour
     private void Update()
     {
         if (!Input.GetKeyUp(KeyCode.Escape)) return;
-
         if (optionsCanvas == null) return;
 
         // 「キーが押され、キャンバスもあるとき」だけが通る
@@ -96,6 +57,7 @@ public class TitleMenuManager : MonoBehaviour
     public void OnStartButtonClick()
     {
         Debug.Log("ゲーム開始！");
+        Time.timeScale = 1.0f;
         SceneManager.LoadScene("GameScene");
     }
 
